@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jidoka Meets C4: A Framework for Human-AI Software Delivery | Stephen's Blog</title>
+  <meta name="description" content="Applying Toyota's Jidoka principle and the C4 model to AI-assisted software development — with lessons from building a production Certificate Authority." />
+  <meta name="author" content="Stephen" />
+
+  <!-- Fonts -->
+  <link href="https://api.fontshare.com/v2/css?f[]=zodiak@400,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── Design Tokens ─── */
+    :root, [data-theme="light"] {
+      --color-bg: #f7f6f2;
+      --color-surface: #f9f8f5;
+      --color-surface-2: #fbfbf9;
+      --color-surface-offset: #f3f0ec;
+      --color-divider: #dcd9d5;
+      --color-border: #d4d1ca;
+      --color-text: #28251d;
+      --color-text-muted: #7a7974;
+      --color-text-faint: #bab9b4;
+      --color-text-inverse: #f9f8f4;
+      --color-primary: #01696f;
+      --color-primary-hover: #0c4e54;
+      --color-primary-highlight: #cedcd8;
+      --color-success: #437a22;
+      --color-warning: #964219;
+      --color-error: #a12c7b;
+      --color-gold: #d19900;
+      --color-blue: #006494;
+      --color-purple: #7a39bb;
+      --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
+      --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.08);
+      --shadow-lg: 0 12px 32px oklch(0.2 0.01 80 / 0.12);
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+      --radius-full: 9999px;
+      --font-display: 'Zodiak', Georgia, serif;
+      --font-body: 'Satoshi', 'Helvetica Neue', sans-serif;
+      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+      --text-2xl: clamp(2rem, 1.2rem + 2.5vw, 3.5rem);
+      --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem;
+      --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem;
+      --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem;
+      --space-16: 4rem; --space-20: 5rem; --space-24: 6rem;
+      --content-narrow: 680px;
+      --content-default: 860px;
+      --transition-interactive: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-theme="dark"] {
+      --color-bg: #171614;
+      --color-surface: #1c1b19;
+      --color-surface-2: #201f1d;
+      --color-surface-offset: #1d1c1a;
+      --color-divider: #262523;
+      --color-border: #393836;
+      --color-text: #cdccca;
+      --color-text-muted: #797876;
+      --color-text-faint: #5a5957;
+      --color-text-inverse: #2b2a28;
+      --color-primary: #4f98a3;
+      --color-primary-hover: #227f8b;
+      --color-primary-highlight: #313b3b;
+      --color-success: #6daa45;
+      --color-warning: #bb653b;
+      --color-error: #d163a7;
+      --color-gold: #e8af34;
+      --color-blue: #5591c7;
+      --color-purple: #a86fdf;
+      --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
+      --shadow-md: 0 4px 12px oklch(0 0 0 / 0.3);
+      --shadow-lg: 0 12px 32px oklch(0 0 0 / 0.4);
+    }
+
+    /* ─── Base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; scroll-padding-top: var(--space-16); }
+    body { min-height: 100dvh; font-family: var(--font-body); font-size: var(--text-base); line-height: 1.7; color: var(--color-text); background: var(--color-bg); transition: background var(--transition-interactive), color var(--transition-interactive); }
+    img { display: block; max-width: 100%; height: auto; }
+    a { color: var(--color-primary); text-decoration: none; transition: color var(--transition-interactive); }
+    a:hover { color: var(--color-primary-hover); }
+    :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: var(--radius-sm); }
+    p, li { text-wrap: pretty; max-width: 72ch; }
+    h1,h2,h3,h4 { text-wrap: balance; line-height: 1.2; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+    /* ─── Layout ─── */
+    .site-header {
+      position: sticky; top: 0; z-index: 100;
+      background: color-mix(in oklch, var(--color-bg) 85%, transparent);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid oklch(from var(--color-text) l c h / 0.08);
+      padding: var(--space-4) var(--space-6);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .site-logo { display: flex; align-items: center; gap: var(--space-2); font-family: var(--font-display); font-size: var(--text-sm); font-weight: 700; color: var(--color-text); }
+    .site-logo svg { flex-shrink: 0; }
+    .header-right { display: flex; align-items: center; gap: var(--space-4); }
+    .nav-link { font-size: var(--text-sm); color: var(--color-text-muted); transition: color var(--transition-interactive); }
+    .nav-link:hover { color: var(--color-text); }
+    .theme-toggle { background: none; border: none; cursor: pointer; color: var(--color-text-muted); padding: var(--space-1); border-radius: var(--radius-sm); transition: color var(--transition-interactive); display: flex; align-items: center; }
+    .theme-toggle:hover { color: var(--color-text); }
+
+    .article-container { max-width: var(--content-default); margin-inline: auto; padding: var(--space-16) var(--space-6) var(--space-24); }
+
+    /* ─── Hero ─── */
+    .article-hero { margin-bottom: var(--space-16); }
+    .article-meta { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-6); flex-wrap: wrap; }
+    .tag { display: inline-block; font-size: var(--text-xs); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); background: color-mix(in oklch, var(--color-primary) 12%, var(--color-bg)); color: var(--color-primary); }
+    .tag.gold { background: color-mix(in oklch, var(--color-gold) 12%, var(--color-bg)); color: var(--color-gold); }
+    .tag.purple { background: color-mix(in oklch, var(--color-purple) 12%, var(--color-bg)); color: var(--color-purple); }
+    .meta-dot { color: var(--color-text-faint); }
+    .meta-text { font-size: var(--text-xs); color: var(--color-text-muted); }
+
+    .article-title { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 700; line-height: 1.1; color: var(--color-text); margin-bottom: var(--space-6); }
+    .article-subtitle { font-size: var(--text-lg); color: var(--color-text-muted); line-height: 1.5; max-width: 58ch; margin-bottom: var(--space-8); }
+    .author-row { display: flex; align-items: center; gap: var(--space-3); }
+    .author-avatar { width: 40px; height: 40px; border-radius: var(--radius-full); background: color-mix(in oklch, var(--color-primary) 20%, var(--color-surface-offset)); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: var(--text-sm); color: var(--color-primary); flex-shrink: 0; }
+    .author-info { display: flex; flex-direction: column; gap: 2px; }
+    .author-name { font-size: var(--text-sm); font-weight: 500; color: var(--color-text); }
+    .author-role { font-size: var(--text-xs); color: var(--color-text-muted); }
+
+    /* ─── Divider ─── */
+    .divider { border: none; border-top: 1px solid var(--color-divider); margin: var(--space-12) 0; }
+
+    /* ─── Article Body ─── */
+    .article-body { display: flex; flex-direction: column; gap: var(--space-8); }
+    .article-body h2 { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 700; color: var(--color-text); margin-top: var(--space-6); padding-top: var(--space-6); border-top: 1px solid var(--color-divider); }
+    .article-body h2:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+    .article-body h3 { font-family: var(--font-body); font-size: var(--text-lg); font-weight: 700; color: var(--color-text); margin-top: var(--space-2); }
+    .article-body p { font-size: var(--text-base); color: var(--color-text); line-height: 1.75; }
+    .article-body ul, .article-body ol { padding-left: var(--space-6); display: flex; flex-direction: column; gap: var(--space-2); }
+    .article-body li { font-size: var(--text-base); color: var(--color-text); line-height: 1.7; }
+    .article-body strong { color: var(--color-text); font-weight: 600; }
+
+    /* ─── Pull Quote ─── */
+    .pull-quote { border-left: 3px solid var(--color-primary); padding: var(--space-4) var(--space-6); background: color-mix(in oklch, var(--color-primary) 6%, var(--color-surface)); border-radius: 0 var(--radius-md) var(--radius-md) 0; margin: var(--space-4) 0; }
+    .pull-quote p { font-family: var(--font-display); font-size: var(--text-lg); color: var(--color-text); font-style: italic; line-height: 1.5; max-width: none; }
+
+    /* ─── C4 Level Cards ─── */
+    .c4-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr)); gap: var(--space-4); margin: var(--space-4) 0; }
+    .c4-card { background: var(--color-surface); border: 1px solid oklch(from var(--color-text) l c h / 0.08); border-radius: var(--radius-lg); padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); box-shadow: var(--shadow-sm); transition: box-shadow var(--transition-interactive), transform var(--transition-interactive); }
+    .c4-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .c4-level-badge { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+    .c4-card-title { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 700; color: var(--color-text); }
+    .c4-card-role { font-size: var(--text-sm); font-weight: 500; color: var(--color-text-muted); }
+    .c4-card-desc { font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.6; }
+    .c4-card-jidoka { font-size: var(--text-xs); color: var(--color-text-faint); border-top: 1px solid var(--color-divider); padding-top: var(--space-3); margin-top: var(--space-1); font-style: italic; }
+
+    .level-context .c4-level-badge { color: var(--color-purple); }
+    .level-container .c4-level-badge { color: var(--color-blue); }
+    .level-component .c4-level-badge { color: var(--color-primary); }
+    .level-code .c4-level-badge { color: var(--color-success); }
+
+    .level-context { border-top: 2px solid var(--color-purple); }
+    .level-container { border-top: 2px solid var(--color-blue); }
+    .level-component { border-top: 2px solid var(--color-primary); }
+    .level-code { border-top: 2px solid var(--color-success); }
+
+    /* ─── Jidoka Principle Block ─── */
+    .principle-block { background: var(--color-surface); border: 1px solid oklch(from var(--color-text) l c h / 0.08); border-radius: var(--radius-xl); padding: var(--space-8); display: grid; grid-template-columns: auto 1fr; gap: var(--space-6); align-items: start; box-shadow: var(--shadow-sm); margin: var(--space-4) 0; }
+    .principle-icon { width: 48px; height: 48px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.5rem; }
+    .principle-block h3 { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 700; color: var(--color-text); margin-bottom: var(--space-2); }
+    .principle-block p { font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.65; max-width: none; }
+
+    /* ─── Summary Table ─── */
+    .summary-table-wrap { overflow-x: auto; margin: var(--space-4) 0; border-radius: var(--radius-lg); border: 1px solid oklch(from var(--color-text) l c h / 0.08); box-shadow: var(--shadow-sm); }
+    table { border-collapse: collapse; width: 100%; font-size: var(--text-sm); background: var(--color-surface); }
+    thead tr { background: color-mix(in oklch, var(--color-primary) 8%, var(--color-surface-offset)); }
+    th { padding: var(--space-3) var(--space-4); text-align: left; font-weight: 700; color: var(--color-text); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--color-divider); }
+    td { padding: var(--space-3) var(--space-4); color: var(--color-text); border-bottom: 1px solid oklch(from var(--color-text) l c h / 0.06); line-height: 1.5; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: color-mix(in oklch, var(--color-primary) 4%, var(--color-surface)); }
+    .dot { width: 8px; height: 8px; border-radius: var(--radius-full); display: inline-block; margin-right: var(--space-2); vertical-align: middle; }
+
+    /* ─── Code Block ─── */
+    .code-block { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); overflow-x: auto; font-family: 'Courier New', monospace; font-size: var(--text-xs); line-height: 1.7; color: var(--color-text-muted); margin: var(--space-4) 0; }
+    .code-block .comment { color: var(--color-text-faint); font-style: italic; }
+    .code-block .keyword { color: var(--color-primary); }
+    .code-block .string { color: var(--color-gold); }
+
+    /* ─── Repo Links ─── */
+    .repo-links { display: flex; flex-wrap: wrap; gap: var(--space-3); margin: var(--space-4) 0; }
+    .repo-link { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); font-weight: 500; color: var(--color-text); background: var(--color-surface); border: 1px solid oklch(from var(--color-text) l c h / 0.1); border-radius: var(--radius-full); padding: var(--space-2) var(--space-4); transition: all var(--transition-interactive); text-decoration: none; }
+    .repo-link:hover { background: color-mix(in oklch, var(--color-primary) 8%, var(--color-surface)); border-color: var(--color-primary); color: var(--color-primary); }
+
+    /* ─── Disclaimer ─── */
+    .disclaimer { background: color-mix(in oklch, var(--color-warning) 8%, var(--color-surface)); border: 1px solid color-mix(in oklch, var(--color-warning) 20%, transparent); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); font-size: var(--text-sm); color: var(--color-text-muted); display: flex; gap: var(--space-3); align-items: flex-start; margin: var(--space-4) 0; }
+
+    /* ─── Footer ─── */
+    .site-footer { border-top: 1px solid var(--color-divider); padding: var(--space-10) var(--space-6); text-align: center; }
+    .site-footer p { font-size: var(--text-xs); color: var(--color-text-faint); max-width: none; }
+
+    /* ─── Mobile ─── */
+    @media (max-width: 600px) {
+      .article-container { padding: var(--space-10) var(--space-4) var(--space-16); }
+      .c4-grid { grid-template-columns: 1fr; }
+      .principle-block { grid-template-columns: 1fr; }
+      .article-title { font-size: clamp(1.8rem, 8vw, 2.5rem); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <a href="https://stephenjm.github.io" class="site-logo" target="_blank" rel="noopener noreferrer">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-label="Stephen's blog logo">
+        <rect x="2" y="2" width="24" height="24" rx="6" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M8 10h5M8 14h8M8 18h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="20" cy="10" r="2" fill="currentColor" opacity="0.5"/>
+      </svg>
+      stephenjm.github.io
+    </a>
+    <div class="header-right">
+      <a href="https://github.com/stephenjm/certificate-authority" class="nav-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Article -->
+  <main>
+    <article class="article-container">
+
+      <!-- Hero -->
+      <header class="article-hero">
+        <div class="article-meta">
+          <span class="tag">Systems Thinking</span>
+          <span class="tag gold">AI Engineering</span>
+          <span class="tag purple">Architecture</span>
+          <span class="meta-dot">·</span>
+          <span class="meta-text">April 2026</span>
+          <span class="meta-dot">·</span>
+          <span class="meta-text">12 min read</span>
+        </div>
+
+        <h1 class="article-title">Jidoka Meets C4: A Framework for Human–AI Software Delivery</h1>
+        <p class="article-subtitle">How Toyota's principle of stopping to fix problems at the exact point they occur — and the C4 model's four levels of abstraction — can define where AI agents operate, and where humans must hold the line.</p>
+
+        <div class="author-row">
+          <div class="author-avatar">SJ</div>
+          <div class="author-info">
+            <span class="author-name">Stephen</span>
+            <span class="author-role">Senior Software Engineer · Security & Distributed Systems</span>
+          </div>
+        </div>
+      </header>
+
+      <hr class="divider" />
+
+      <!-- Body -->
+      <div class="article-body">
+
+        <p>Over the last few months, I've been using GitHub Copilot to build a production-grade <a href="https://github.com/stephenjm/certificate-authority" target="_blank" rel="noopener noreferrer">Certificate Authority</a>, a multi-phase <a href="https://github.com/stephenjm/key-management-service" target="_blank" rel="noopener noreferrer">Key Management Service</a>, and a <a href="https://github.com/stephenjm/crypto-client" target="_blank" rel="noopener noreferrer">multi-provider cryptographic abstraction library</a>. These aren't toy projects — they're production-ready reference architectures involving PKI design, FIPS-compliant cryptography, Kubernetes HA, and envelope encryption patterns.</p>
+
+        <p>Along the way, I kept returning to a question that most AI tooling discourse skips entirely: <strong>not whether to use AI, but where.</strong> The answer, I believe, lies at the intersection of two well-established frameworks that engineers already know — Toyota's Jidoka principle and Simon Brown's C4 model.</p>
+
+        <div class="pull-quote">
+          <p>"AI didn't make me faster at building. It made me faster at everything except the parts that actually matter."</p>
+        </div>
+
+        <!-- Section 1 -->
+        <h2>The Problem with AI Everywhere</h2>
+
+        <p>The engineering conversation around AI agents tends toward two extremes: either uncritical enthusiasm ("let AI write everything") or blanket scepticism ("it hallucinates, don't trust it"). Neither is useful in production.</p>
+
+        <p>The more productive question is: <strong>what is the solution space of a given task?</strong> Not all code generation is probabilistic. A Spring Boot scaffold, a Gradle multi-module layout, a JPA repository layer — these have finite, well-known solution spaces. There's no meaningful ambiguity in generating them. That's very different from designing a PKI trust hierarchy, defining a cryptographic key lifecycle, or choosing how to handle certificate revocation. Get the first category wrong and you waste an afternoon. Get the second category wrong and you have a security vulnerability in production.</p>
+
+        <p>Without a principled answer to "why AI here?", teams default to using it everywhere — and introduce probabilistic risk into domains that were previously deterministic and safe.</p>
+
+        <!-- Section 2 -->
+        <h2>Jidoka: Stop, Fix, Continue</h2>
+
+        <p>Toyota's Production System introduced <strong>Jidoka</strong> — often translated as "autonomation with a human touch." The principle is deceptively simple: stop to fix problems at the exact point they occur, rather than passing defects downstream.</p>
+
+        <p>In practice, any worker on a Toyota assembly line can pull the Andon cord when something goes wrong. A team leader arrives within seconds. The line only fully halts if the problem cannot be resolved within that work cycle. Nothing contaminates the next stage. Defects are caught where they're created, not discovered three stages later when they've become embedded in a larger assembly.</p>
+
+        <div class="principle-block">
+          <div class="principle-icon" style="background: color-mix(in oklch, var(--color-gold) 12%, var(--color-surface-offset));">🏭</div>
+          <div>
+            <h3>The Andon Cord for Software</h3>
+            <p>In AI-assisted development, the equivalent of the Andon cord is the verification gate — a point at which a human reviews, tests, or validates the output before it passes downstream. Without these gates, AI-generated code flows through the pipeline unchecked, and probabilistic errors compound across layers. By the time a defect surfaces, its origin is buried.</p>
+          </div>
+        </div>
+
+        <p>Applied to software delivery, Jidoka argues for <strong>deterministic outputs at each stage</strong>. If a given input doesn't consistently produce a verifiable, inspectable output, you don't have a pipeline — you have a hope. This is especially true when AI is in the loop, because hallucinations don't announce themselves.</p>
+
+        <!-- Section 3 -->
+        <h2>The C4 Model: Four Levels of Abstraction</h2>
+
+        <p>Simon Brown's <a href="https://c4model.com/abstractions" target="_blank" rel="noopener noreferrer">C4 model</a> provides a clean hierarchy for reasoning about software architecture: Context, Container, Component, and Code. Each level answers a different question about the system at a different altitude.</p>
+
+        <p>What I realised while building the Certificate Authority is that each C4 level maps naturally to a different <strong>tolerance for AI involvement</strong> — and a different Jidoka verification requirement. The higher the altitude, the more consequential the decisions, and the more human judgment is required. The lower the altitude, the more deterministic the solution space, and the more safely AI can operate with minimal supervision.</p>
+
+        <div class="c4-grid">
+          <div class="c4-card level-context">
+            <div class="c4-level-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+              C4 Level 1
+            </div>
+            <div class="c4-card-title">Context</div>
+            <div class="c4-card-role">🧠 Human-owned · Solution Architect</div>
+            <div class="c4-card-desc">System boundaries, stakeholders, external dependencies. What does this system do and who does it serve? These decisions carry downstream consequences that cascade through every other layer. In the CA project: the decision to build a self-hosted PKI rather than rely on a managed CA service entirely.</div>
+            <div class="c4-card-jidoka">Jidoka gate: Architecture review, threat modelling, and stakeholder sign-off before any code is written.</div>
+          </div>
+
+          <div class="c4-card level-container">
+            <div class="c4-level-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18M15 3v18"/></svg>
+              C4 Level 2
+            </div>
+            <div class="c4-card-title">Container</div>
+            <div class="c4-card-role">🤝 HITL AI · Staff / Principal Engineer</div>
+            <div class="c4-card-desc">Services, databases, APIs, deployment units. How is the system decomposed? AI can propose container structures, but the trade-offs — data ownership, failure domains, network boundaries — require human judgment. In the CA project: the decision to separate the Certificate entity from the AuditLog entity, ensuring immutable audit records.</div>
+            <div class="c4-card-jidoka">Jidoka gate: Human reviews all container-level decisions before implementation begins. AI suggestions are inputs, not decisions.</div>
+          </div>
+
+          <div class="c4-card level-component">
+            <div class="c4-level-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              C4 Level 3
+            </div>
+            <div class="c4-card-title">Component</div>
+            <div class="c4-card-role">👁️ AI-assisted with review · Senior Engineer</div>
+            <div class="c4-card-desc">Classes, interfaces, modules within a container. AI can generate components effectively once the container boundaries are defined. In the CA project: the KmsProvider interface and its four adapter implementations (Mock, AWS, GCP, Azure). Copilot generated consistent implementations once I defined the interface contract.</div>
+            <div class="c4-card-jidoka">Jidoka gate: Every component reviewed for correctness, security implications, and alignment with the container design. Crypto paths: test-vector backed, not trust-the-library.</div>
+          </div>
+
+          <div class="c4-card level-code">
+            <div class="c4-level-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              C4 Level 4
+            </div>
+            <div class="c4-card-title">Code</div>
+            <div class="c4-card-role">🤖 Fully Agentic · AI Agent</div>
+            <div class="c4-card-desc">Implementation details within a component. Boilerplate, scaffolding, test templates, manifest files, monitoring dashboards, documentation. The solution space is finite and well-defined. In the CA project: K8s manifests, Docker configs, Grafana dashboards, Flyway migrations, and adapter scaffolding across four providers.</div>
+            <div class="c4-card-jidoka">Jidoka gate: Automated — linting, testing, and CI pipelines. Human spot-checks, not full review of every line.</div>
+          </div>
+        </div>
+
+        <!-- Section 4 -->
+        <h2>The Framework in Practice</h2>
+
+        <p>Here's how this played out across the three repositories in this experiment:</p>
+
+        <div class="summary-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>C4 Level</th>
+                <th>Example Decision (CA Project)</th>
+                <th>AI Role</th>
+                <th>Verification Gate</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="dot" style="background:var(--color-purple)"></span>Context</td>
+                <td>Self-hosted PKI vs. managed CA; multi-provider KMS abstraction strategy</td>
+                <td>None — human decision</td>
+                <td>Architecture review, threat model</td>
+              </tr>
+              <tr>
+                <td><span class="dot" style="background:var(--color-blue)"></span>Container</td>
+                <td>Certificate / AuditLog entity separation; mTLS on all endpoints; HA replica count</td>
+                <td>Input only — human decides</td>
+                <td>Design review before implementation</td>
+              </tr>
+              <tr>
+                <td><span class="dot" style="background:var(--color-primary)"></span>Component</td>
+                <td>KmsProvider interface; 12-step CSR signing flow; certificate profile matrix</td>
+                <td>AI generates, human reviews every crypto path</td>
+                <td>RFC 5280 compliance, test-vector verification</td>
+              </tr>
+              <tr>
+                <td><span class="dot" style="background:var(--color-success)"></span>Code</td>
+                <td>K8s manifests, Grafana dashboards, adapter scaffolding, test templates, documentation</td>
+                <td>Fully agentic — minimal supervision</td>
+                <td>CI pipeline, linting, automated tests</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>The pattern is consistent: <strong>the higher the C4 level, the more consequential the decision, and the less AI should operate unsupervised.</strong> The lower the level, the more deterministic the solution space, and the more AI can safely accelerate delivery.</p>
+
+        <!-- Section 5 -->
+        <h2>The Role of .github/instructions/</h2>
+
+        <p>One practical mechanism that made this framework operational was using <code style="font-family: monospace; font-size: 0.9em; background: var(--color-surface-offset); padding: 2px 6px; border-radius: var(--radius-sm);">.github/instructions/</code> files to encode the C4 container and component decisions as constraints that Copilot operates within.</p>
+
+        <p>Rather than re-explaining architectural context in every prompt, I wrote it once: which cryptographic standards apply, which abstractions are in scope, what the agent should never suggest. The result was that Copilot's suggestions at the code level were consistently aligned with the container and component decisions made by humans at the higher levels. The architecture document became the agent's ambient context.</p>
+
+        <div class="code-block">
+          <span class="comment"># .github/instructions/crypto.md — excerpt</span><br><br>
+          <span class="comment">## Cryptographic Standards</span><br>
+          <span class="keyword">- Always use RSA 4096 with SHA-256. Never suggest MD5 or SHA-1.</span><br>
+          <span class="keyword">- All key operations must go through the KeyStore abstraction.</span><br>
+          <span class="keyword">- Never generate keys inline — always delegate to the KeyGenerationService.</span><br>
+          <span class="keyword">- Serial numbers must be RFC 5280 compliant (positive, max 20 octets).</span><br><br>
+          <span class="comment">## What you must not do</span><br>
+          <span class="keyword">- Do not suggest direct KMS API calls for data encryption (use envelope encryption).</span><br>
+          <span class="keyword">- Do not add dependencies outside the approved list without flagging for human review.</span>
+        </div>
+
+        <p>This is Jidoka applied at the tooling level: the agent's solution space is constrained before generation begins, so defects are prevented rather than caught. The instructions file is the Andon cord, pre-pulled.</p>
+
+        <!-- Section 6 -->
+        <h2>Tiered Autonomy: Experience Matters</h2>
+
+        <p>There's a second dimension to this framework that the C4 model alone doesn't capture: <strong>the experience of the engineer wielding the tool.</strong></p>
+
+        <p>A senior engineer can operate AI agents the way a surgeon performs keyhole surgery — precise, deliberate, knowing exactly when to intervene. They understand the failure modes, they recognise when a suggestion is subtly wrong, and they maintain clear ownership of the decisions that matter.</p>
+
+        <p>For less experienced engineers, the same tools require tighter guardrails — not as a limitation, but as the mechanism by which mistakes stay small enough to learn from. The guardrails aren't bureaucracy. They're the Jidoka gate that ensures the defect is caught at the level where it occurred, not discovered downstream when it's embedded in something larger.</p>
+
+        <p>The implication for engineering teams: <strong>AI autonomy should be calibrated to both the C4 level and the engineer's experience.</strong> Not a blanket policy, but a graduated one — more constraint at higher C4 levels and for less experienced engineers, more autonomy at lower levels and for engineers who can supervise the output.</p>
+
+        <!-- Section 7 -->
+        <h2>What This Looks Like in the Repositories</h2>
+
+        <p>The three repositories from this experiment are structured to reflect this framework:</p>
+
+        <ul>
+          <li><strong>Certificate Authority</strong> — Context and Container decisions (PKI design, mTLS, HA architecture, audit integrity) are fully human-owned and documented in ARCHITECTURE.md. Component and Code levels were AI-assisted with review gates at every crypto path.</li>
+          <li><strong>Key Management Service</strong> — The four-phase roadmap reflects C4-level thinking: Phase 1 establishes the container architecture; Phases 2–3 build out components (provider adapters); Phase 4 handles code-level service integrations.</li>
+          <li><strong>crypto-client</strong> — The KmsProvider interface (component level) was human-designed. The four adapter implementations (code level) were largely AI-generated, then reviewed for consistency with the interface contract.</li>
+        </ul>
+
+        <div class="disclaimer">
+          <span style="font-size: 1.25rem; flex-shrink: 0;">⚠️</span>
+          <p style="max-width: none;">These are working reference architectures, not copy-paste solutions. Production deployment requires security review, HSM integration planning, and operational runbooks tailored to your environment.</p>
+        </div>
+
+        <div class="repo-links">
+          <a href="https://github.com/stephenjm/certificate-authority" class="repo-link" target="_blank" rel="noopener noreferrer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            Certificate Authority
+          </a>
+          <a href="https://github.com/stephenjm/key-management-service" class="repo-link" target="_blank" rel="noopener noreferrer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            Key Management Service
+          </a>
+          <a href="https://github.com/stephenjm/crypto-client" class="repo-link" target="_blank" rel="noopener noreferrer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            crypto-client
+          </a>
+        </div>
+
+        <!-- Section 8 -->
+        <h2>The Basics Still Hold</h2>
+
+        <p>What strikes me most about this framework is how little of it is new. Jidoka is over 60 years old. The C4 model has been around since 2006. Acceptance criteria, quality gates, and feedback loops at every SDLC stage — these aren't novel ideas.</p>
+
+        <p>The reason they bear repeating in the context of AI tooling is that the excitement around agent-based development creates pressure to skip the basics — to treat AI output as inherently trustworthy, to defer quality gates to "later," to let probabilistic generation flow unchecked through layers of the system. The Toyota production line didn't get faster by removing inspection. It got faster by moving inspection to the right place.</p>
+
+        <p>The future of AI-assisted engineering isn't a free-for-all. It's a graduated system of autonomy, calibrated to the altitude of the decision and the experience of the engineer. Build the assembly line correctly, run the Andon cord at the right points, and the system produces reliably — whether the worker is human, AI, or both.</p>
+
+      </div>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>stephenjm.github.io · Senior Software Engineer · Security & Distributed Systems</p>
+  </footer>
+
+  <script>
+    (function(){
+      const t = document.querySelector('[data-theme-toggle]');
+      const r = document.documentElement;
+      let d = r.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      r.setAttribute('data-theme', d);
+      function updateIcon() {
+        if (!t) return;
+        t.setAttribute('aria-label', 'Switch to ' + (d === 'dark' ? 'light' : 'dark') + ' mode');
+        t.innerHTML = d === 'dark'
+          ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+          : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+      }
+      updateIcon();
+      if (t) t.addEventListener('click', () => {
+        d = d === 'dark' ? 'light' : 'dark';
+        r.setAttribute('data-theme', d);
+        updateIcon();
+      });
+    })();
+  </script>
+
+</body>
+</html>
