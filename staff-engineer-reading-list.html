@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Reading List — Books That Built the Framework</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root, [data-theme="light"] {
+            --color-bg: #f7f6f2; --color-surface: #f0ede8; --color-surface-2: #e8e5df;
+            --color-border: #d4d1ca; --color-divider: #dcd9d5;
+            --color-text: #1a1916; --color-text-muted: #6b6a65; --color-text-faint: #b0afa9;
+            --color-primary: #01696f; --color-primary-hover: #0c4e54; --color-primary-highlight: #cedcd8;
+            --shadow-sm: 0 1px 3px oklch(0.2 0.01 80 / 0.08); --shadow-md: 0 4px 16px oklch(0.2 0.01 80 / 0.10);
+            --font-body: 'Inter', sans-serif; --font-display: 'Instrument Serif', Georgia, serif;
+            --radius-sm: 0.375rem; --radius-md: 0.5rem; --radius-lg: 0.75rem;
+            --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+            --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+            --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+            --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+            --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+            --text-2xl: clamp(2rem, 1.2rem + 2.5vw, 3.5rem);
+            --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
+            --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem;
+            --space-12: 3rem; --space-16: 4rem; --space-20: 5rem;
+        }
+        [data-theme="dark"] {
+            --color-bg: #141312; --color-surface: #1c1b19; --color-surface-2: #242320;
+            --color-border: #333230; --color-divider: #2a2927;
+            --color-text: #d4d3d0; --color-text-muted: #7a7976; --color-text-faint: #4e4d4b;
+            --color-primary: #4f98a3; --color-primary-hover: #62adb8; --color-primary-highlight: #1f3538;
+            --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.25); --shadow-md: 0 4px 16px oklch(0 0 0 / 0.35);
+        }
+        html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+        body { font-family: var(--font-body),serif; font-size: var(--text-base); color: var(--color-text); background-color: var(--color-bg); line-height: 1.7; min-height: 100dvh; }
+
+        nav { position: sticky; top: 0; z-index: 100; background: color-mix(in oklch, var(--color-bg) 90%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid oklch(from var(--color-text) l c h / 0.08); padding: var(--space-4) var(--space-8); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+        .nav-logo { display: flex; align-items: center; gap: var(--space-3); text-decoration: none; color: var(--color-text); }
+        .nav-wordmark { font-size: var(--text-sm); font-weight: 600; color: var(--color-text); }
+        .nav-links { display: flex; align-items: center; gap: var(--space-6); list-style: none; }
+        .nav-links a { font-size: var(--text-sm); color: var(--color-text-muted); text-decoration: none; transition: color 180ms ease; }
+        .nav-links a:hover, .nav-links a.active { color: var(--color-primary); }
+        .theme-toggle { background: none; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-2); color: var(--color-text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 180ms ease, border-color 180ms ease; }
+        .theme-toggle:hover { color: var(--color-primary); border-color: var(--color-primary); }
+
+        .hero { max-width: 860px; margin: 0 auto; padding: var(--space-20) var(--space-8) var(--space-12); }
+        .hero-eyebrow { font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-primary); margin-bottom: var(--space-5); }
+        .hero-title { font-family: var(--font-display),serif; font-size: var(--text-2xl); font-style: italic; line-height: 1.15; color: var(--color-text); margin-bottom: var(--space-6); }
+        .hero-subtitle { font-size: var(--text-lg); color: var(--color-text-muted); max-width: 60ch; line-height: 1.6; margin-bottom: var(--space-8); }
+        .hero-meta { display: flex; align-items: center; gap: var(--space-4); font-size: var(--text-xs); color: var(--color-text-faint); }
+        .hero-meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--color-text-faint); }
+
+        /* TL;DR / What Comes Next — now top of page */
+        .not-done { background: var(--color-surface); border-bottom: 1px solid var(--color-divider); padding: var(--space-12) var(--space-8); }
+        .not-done-inner { max-width: 860px; margin: 0 auto; }
+        .not-done-eyebrow { font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-primary); margin-bottom: var(--space-6); }
+        .not-done-jobs { font-family: var(--font-display),serif; font-style: italic; font-size: var(--text-xl); color: var(--color-text); line-height: 1.4; border-left: 3px solid var(--color-primary); padding-left: var(--space-6); margin-bottom: var(--space-3); }
+        .not-done-jobs-attr { font-size: var(--text-xs); color: var(--color-text-faint); padding-left: var(--space-6); margin-bottom: var(--space-8); }
+        .not-done-body { color: var(--color-text-muted); max-width: 62ch; line-height: 1.8; margin-bottom: var(--space-6); }
+        .not-done-body p + p { margin-top: var(--space-4); }
+        .open-questions { list-style: none; margin: var(--space-6) 0; display: flex; flex-direction: column; gap: var(--space-4); }
+        .open-questions li { display: flex; gap: var(--space-4); align-items: flex-start; font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.65; max-width: 58ch; }
+        .open-questions li::before { content: "?"; font-family: var(--font-display),serif; font-style: italic; font-size: var(--text-lg); color: var(--color-primary); flex-shrink: 0; line-height: 1.2; margin-top: -2px; }
+        .not-done-closer { font-family: var(--font-display),serif; font-style: italic; font-size: var(--text-lg); color: var(--color-text); max-width: 50ch; line-height: 1.6; margin-top: var(--space-8); padding-top: var(--space-8); border-top: 1px solid var(--color-divider); }
+
+        .intro-band { border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); background: var(--color-surface); padding: var(--space-12) var(--space-8); }
+        .intro-inner { max-width: 860px; margin: 0 auto; }
+        .intro-quote { font-family: var(--font-display),serif; font-style: italic; font-size: var(--text-xl); color: var(--color-text); line-height: 1.45; max-width: 52ch; border-left: 3px solid var(--color-primary); padding-left: var(--space-6); margin-bottom: var(--space-6); }
+        .intro-body { color: var(--color-text-muted); max-width: 65ch; line-height: 1.75; }
+        .intro-body p + p { margin-top: var(--space-4); }
+
+        .books-section { max-width: 860px; margin: 0 auto; padding: var(--space-16) var(--space-8); }
+        .section-label { font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-faint); margin-bottom: var(--space-8); }
+        .book-entry { display: grid; grid-template-columns: 80px 1fr; gap: var(--space-8); padding: var(--space-8) 0; border-bottom: 1px solid var(--color-divider); align-items: start; }
+        .book-entry:first-of-type { border-top: 1px solid var(--color-divider); }
+        .book-spine { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding-top: var(--space-1); }
+        .book-number { font-size: var(--text-xs); font-weight: 700; color: var(--color-primary); letter-spacing: 0.05em; }
+        .book-color-bar { width: 3px; height: 60px; border-radius: 2px; }
+        .book-tag { display: inline-block; font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-primary); background: var(--color-primary-highlight); padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); margin-bottom: var(--space-3); }
+        .book-title { font-family: var(--font-display),serif; font-style: italic; font-size: var(--text-lg); color: var(--color-text); line-height: 1.3; margin-bottom: var(--space-2); }
+        .book-author { font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: var(--space-4); }
+        .book-body { color: var(--color-text-muted); font-size: var(--text-base); line-height: 1.75; max-width: 60ch; margin-bottom: var(--space-4); }
+        .book-friction { font-size: var(--text-sm); color: var(--color-text-faint); font-style: italic; max-width: 58ch; line-height: 1.65; margin-bottom: var(--space-4); padding-left: var(--space-4); border-left: 2px solid var(--color-divider); }
+        .book-takeaway { display: flex; align-items: flex-start; gap: var(--space-3); background: var(--color-surface); border: 1px solid oklch(from var(--color-text) l c h / 0.07); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); }
+        .book-takeaway-label { font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-primary); white-space: nowrap; padding-top: 2px; }
+        .book-takeaway-text { font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.6; }
+
+        .throughline { background: var(--color-surface); border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); padding: var(--space-16) var(--space-8); }
+        .throughline-inner { max-width: 860px; margin: 0 auto; }
+        .throughline-heading { font-family: var(--font-display),serif; font-style: italic; font-size: var(--text-xl); color: var(--color-text); margin-bottom: var(--space-8); }
+        .throughline-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: var(--space-4); }
+        .throughline-card { background: var(--color-bg); border: 1px solid oklch(from var(--color-text) l c h / 0.07); border-radius: var(--radius-lg); padding: var(--space-5); }
+        .throughline-card-book { font-size: var(--text-xs); color: var(--color-primary); font-weight: 600; margin-bottom: var(--space-2); }
+        .throughline-card-concept { font-size: var(--text-sm); font-weight: 600; color: var(--color-text); margin-bottom: var(--space-2); }
+        .throughline-card-body { font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.6; }
+
+        footer { border-top: 1px solid var(--color-divider); padding: var(--space-8); text-align: center; font-size: var(--text-xs); color: var(--color-text-faint); }
+
+        @media (max-width: 640px) {
+            nav { padding: var(--space-3) var(--space-4); }
+            .nav-links { display: none; }
+            .hero, .books-section { padding-inline: var(--space-4); }
+            .not-done, .intro-band, .throughline { padding-inline: var(--space-4); }
+            .book-entry { grid-template-columns: 48px 1fr; gap: var(--space-4); }
+            .book-color-bar { height: 40px; }
+        }
+  
+    .summary-table-wrap { margin: var(--space-10) 0 var(--space-8); }
+    .summary-table-label { font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-faint); margin-bottom: var(--space-5); }
+    .summary-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+    .summary-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+    .summary-table thead { background: var(--color-surface); }
+    .summary-table th { padding: var(--space-3) var(--space-5); text-align: left; font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-text-faint); border-bottom: 1px solid var(--color-border); white-space: nowrap; }
+    .summary-table td { padding: var(--space-4) var(--space-5); vertical-align: top; color: var(--color-text-muted); line-height: 1.6; border-bottom: 1px solid var(--color-divider); }
+    .summary-table tr:last-child td { border-bottom: none; }
+    .summary-table tr:hover td { background: color-mix(in oklch, var(--color-primary) 4%, var(--color-bg)); transition: background 180ms ease; }
+    .summary-table td:first-child { min-width: 180px; }
+    .summary-table td:nth-child(2), .summary-table td:nth-child(3) { min-width: 220px; }
+    .summary-book-title { font-family: var(--font-display),serif; font-style: italic; color: var(--color-text); font-size: var(--text-sm); display: block; margin-bottom: var(--space-1); }
+
+  </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="nav-logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-label="Jidoka C4 Logo">
+            <rect width="28" height="28" rx="6" fill="var(--color-primary)" opacity="0.15"/>
+            <rect x="5" y="5" width="8" height="8" rx="1.5" fill="var(--color-primary)"/>
+            <rect x="15" y="5" width="8" height="8" rx="1.5" fill="var(--color-primary)" opacity="0.6"/>
+            <rect x="5" y="15" width="8" height="8" rx="1.5" fill="var(--color-primary)" opacity="0.6"/>
+            <rect x="15" y="15" width="8" height="8" rx="1.5" fill="var(--color-primary)" opacity="0.3"/>
+        </svg>
+        <span class="nav-wordmark">Jidoka x C4</span>
+    </a>
+    <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="jidoka-c4-ai-framework.html">Framework</a></li>
+        <li><a href="staff-engineer-reading-list.html" class="active">Reading List</a></li>
+    </ul>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+    </button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <p class="hero-eyebrow">Career Break — Reading Journal</p>
+    <h1 class="hero-title">I didn't take time off to rest.<br>I took time off to think.</h1>
+    <p class="hero-subtitle">
+        For years I was executing well but asking fewer and fewer of the questions that matter.
+        These six books — read alongside building a Certificate Authority, a Key Management Service,
+        and a cryptographic library — were my attempt to fix that.
+    </p>
+    <div class="hero-meta">
+        <span>Stephen</span>
+        <span class="hero-meta-dot"></span>
+        <span>April 2026</span>
+        <span class="hero-meta-dot"></span>
+        <span>6 books · 3 repositories · still going</span>
+    </div>
+</section>
+
+<!-- WHAT COMES NEXT — TL;DR, top of page -->
+<section class="not-done">
+    <div class="not-done-inner">
+        <p class="not-done-eyebrow">TL;DR — What this is really about</p>
+        <blockquote class="not-done-jobs">"Stay hungry. Stay foolish."</blockquote>
+        <p class="not-done-jobs-attr">— Steve Jobs, Stanford Commencement Address, 2005</p>
+        <div class="not-done-body">
+            <p>
+                I used to read that quote as a call to ambition. I now read it as a discipline — the deliberate
+                choice to remain uncomfortable, to keep asking the questions that do not have clean answers yet,
+                to resist the pull toward expertise as a resting state.
+            </p>
+            <p>
+                This page is not a retrospective. It is a snapshot mid-climb. The Certificate Authority, the KMS,
+                the crypto-client — these are not portfolio pieces. They are the proof of work behind questions
+                I am still sitting with:
+            </p>
+        </div>
+        <ul class="open-questions">
+            <li>When AI agents make thousands of small decisions per second inside a distributed system, and humans defer the majority of that work, what happens to ACID guarantees? Who owns the transaction boundary when the agent does not know it crossed one?</li>
+            <li>Teams building AI-assisted systems are routinely intermixing ACID and BASE patterns without realising it — because the agent does not distinguish between them. For security-sensitive projects, that gap is not a performance trade-off. It is a CIA triad failure waiting to happen.</li>
+            <li>CAP theorem does not disappear because the code was generated quickly. If anything, the risk of violating consistency guarantees increases when no single human holds the full design in their head — and the agent never did to begin with.</li>
+            <li>Where does the C4 model break down when the component is an LLM with probabilistic outputs and no stable interface contract? And what does staff-level engineering judgment look like when the most junior member of the team never sleeps, never asks for clarification, and never flags that it is guessing?</li>
+        </ul>
+    </div>
+</section>
+
+<!-- INTRO BAND -->
+<div class="intro-band">
+    <div class="intro-inner">
+        <blockquote class="intro-quote">
+            "AI didn't make me faster at building. It made me faster at everything except the parts that actually matter."
+        </blockquote>
+        <div class="intro-body">
+            <p>
+                That realisation landed mid-build — around the time I was designing the PKI trust hierarchy and
+                noticed that every suggestion Copilot made was syntactically plausible and architecturally naive.
+                It would scaffold a certificate signing flow without once asking whether the serial number was
+                RFC 5280 compliant, or whether the backend could handle revocation at scale. Fast. Confidently wrong.
+            </p>
+            <p>
+                The books did not teach me to distrust the tools. They taught me which decisions the tools cannot
+                own — and why that boundary matters more now than it ever did.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- BOOKS -->
+<section class="books-section">
+    <p class="section-label">The Reading List</p>
+
+    <!-- Book 1 -->
+    <div class="book-entry">
+        <div class="book-spine">
+            <span class="book-number">01</span>
+            <div class="book-color-bar" style="background: #4f98a3;"></div>
+        </div>
+        <div class="book-content">
+            <span class="book-tag">Engineering Leadership</span>
+            <h2 class="book-title">The Staff Engineer's Path</h2>
+            <p class="book-author">Tanya Reilly</p>
+            <p class="book-body">
+                I thought I understood what staff-level engineering meant. I had been operating at that
+                level for years. Reilly's book made me realise I had been describing the symptoms — broad
+                ownership, influence without authority, technical direction — without ever naming the
+                underlying shift: that judgment, not output, becomes your primary deliverable.
+            </p>
+            <p class="book-friction">
+                The uncomfortable moment: she describes engineers who are technically excellent but
+                structurally invisible — high output, low leverage. Delivery discipline without
+                strategic intent is just fast execution in the wrong direction. That pattern is easier
+                to recognise in a team than in yourself.
+            </p>
+            <div class="book-takeaway">
+                <span class="book-takeaway-label">Applied as</span>
+                <p class="book-takeaway-text">The tiered AI autonomy model — more human control at higher C4 levels, more agent latitude at lower ones — is Reilly's calibrated delegation model, applied to tooling rather than people. The agent is not a junior engineer. It is a tool that requires the same calibrated oversight.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book 2 -->
+    <div class="book-entry">
+        <div class="book-spine">
+            <span class="book-number">02</span>
+            <div class="book-color-bar" style="background: #7a8f6a;"></div>
+        </div>
+        <div class="book-content">
+            <span class="book-tag">Architecture Foundations</span>
+            <h2 class="book-title">Fundamentals of Software Architecture</h2>
+            <p class="book-author">Mark Richards and Neal Ford</p>
+            <p class="book-body">
+                The book's central argument is uncomfortable: most architects optimise for the decisions
+                they prefer to make and avoid the ones that are genuinely hard. Every choice is a
+                trade-off, and failing to name the trade-off is not neutrality — it is a decision made badly.
+            </p>
+            <p class="book-friction">
+                The real risk in AI-assisted architecture is not that the agent makes a wrong choice.
+                It is that it makes a choice at all at the wrong level — generating Container-level
+                assumptions embedded silently inside Component-level code, with no ARCHITECTURE.md entry,
+                no rationale, and no owner. The trade-off was made. Nobody signed it.
+            </p>
+            <div class="book-takeaway">
+                <span class="book-takeaway-label">Applied as</span>
+                <p class="book-takeaway-text">Every Context and Container decision in the CA project has an explicit ARCHITECTURE.md entry naming the trade-off — not just the decision. Self-hosted PKI over managed CA: operational control versus operational burden, documented and owned by a human, not generated.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book 3 -->
+    <div class="book-entry">
+        <div class="book-spine">
+            <span class="book-number">03</span>
+            <div class="book-color-bar" style="background: #b07a00;"></div>
+        </div>
+        <div class="book-content">
+            <span class="book-tag">Data and Distributed Systems</span>
+            <h2 class="book-title">Designing Data-Intensive Applications</h2>
+            <p class="book-author">Martin Kleppmann</p>
+            <p class="book-body">
+                Kleppmann connects ideas that are usually taught in isolation: replication, consistency,
+                consensus, stream processing. The mental model that emerges holds together under pressure
+                in a way that individual technique knowledge does not.
+            </p>
+            <p class="book-friction">
+                The friction point was this: AI agents do not have a consistency model. They generate
+                code that works locally and may silently intermix ACID and BASE patterns across service
+                boundaries — because they are optimising for syntactic correctness, not transactional
+                integrity. In a security-sensitive system, that is not a performance trade-off. It is a
+                potential CIA triad failure: data that should be confidential flowing through an
+                eventually-consistent path with no integrity guarantee and no audit trail.
+                CAP theorem does not disappear because the code was generated quickly.
+            </p>
+            <div class="book-takeaway">
+                <span class="book-takeaway-label">Applied as</span>
+                <p class="book-takeaway-text">The AuditLog in the CA is append-only, separately signed, and tamper-evident — a deliberate consistency guarantee, not a default. Envelope encryption in the KMS enforces a clear data boundary. These were human decisions, made explicit because an agent would not have made them at all.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book 4 -->
+    <div class="book-entry">
+        <div class="book-spine">
+            <span class="book-number">04</span>
+            <div class="book-color-bar" style="background: #a13544;"></div>
+        </div>
+        <div class="book-content">
+            <span class="book-tag">Component Design</span>
+            <h2 class="book-title">Software Architecture: The Hard Parts</h2>
+            <p class="book-author">Neal Ford, Mark Richards, Pramod Sadalage and Zhamak Dehghani</p>
+            <p class="book-body">
+                This book is structured as a series of architectural arguments with no clean resolution —
+                which is either frustrating or honest depending on how long you have been in the industry.
+                The hard parts of architecture are hard because the trade-offs are real, not because the
+                engineers involved were insufficiently clever.
+            </p>
+            <p class="book-friction">
+                The granularity chapter surfaced a personal pattern: a tendency to over-decompose — to
+                fragment systems into components that feel clean but introduce coupling at the integration
+                layer that is harder to reason about than the thing being escaped. With AI agents in the
+                loop, that risk compounds. The agent will happily generate a microservice boundary that
+                violates the component contract you designed two sprints ago, because it does not hold
+                the full system context. The coupling is invisible until it is not.
+            </p>
+            <div class="book-takeaway">
+                <span class="book-takeaway-label">Applied as</span>
+                <p class="book-takeaway-text">The KmsProvider interface — human-designed at component level — and the four adapter implementations — AI-assisted at code level — held precisely because the boundary was named and constrained before the agent touched it. The .github/instructions/ file encoded the contract. The agent operated inside it.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book 5 -->
+    <div class="book-entry">
+        <div class="book-spine">
+            <span class="book-number">05</span>
+            <div class="book-color-bar" style="background: #6370b0;"></div>
+        </div>
+        <div class="book-content">
+            <span class="book-tag">Visualising Architecture</span>
+            <h2 class="book-title">The C4 Model for Visualising Software Architecture</h2>
+            <p class="book-author">Simon Brown</p>
+            <p class="book-body">
+                Brown's model is almost too simple to take seriously until you try to apply it under
+                pressure. Four levels — Context, Container, Component, Code — each answering a different
+                question at a different altitude. The discipline is not the diagrams. It is the habit of
+                asking: which level am I operating at right now, and am I answering the right question
+                for this altitude?
+            </p>
+            <p class="book-friction">
+                The confusion I recognised was between Component and Container decisions — making
+                code-level choices that encoded container-level assumptions, then finding the system
+                harder to change than it should have been. AI agents make this worse, not better.
+                They operate exclusively at the code level but their outputs carry implicit container
+                assumptions the human never reviewed. Brown makes that confusion visible.
+                Once you see it, you see it everywhere.
+            </p>
+            <div class="book-takeaway">
+                <span class="book-takeaway-label">Applied as</span>
+                <p class="book-takeaway-text">The four-level AI autonomy matrix uses C4 levels as its primary axis. Context: human only. Code: fully agentic with constrained instructions. The model works because Brown's altitude distinction is precise enough to act on — and specific enough to encode into .github/instructions/ files.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book 6 -->
+    <div class="book-entry">
+        <div class="book-spine">
+            <span class="book-number">06</span>
+            <div class="book-color-bar" style="background: #4a7a5a;"></div>
+        </div>
+        <div class="book-content">
+            <span class="book-tag">Systems Thinking</span>
+            <h2 class="book-title">Thinking in Systems</h2>
+            <p class="book-author">Donella H. Meadows</p>
+            <p class="book-body">
+                Meadows is not writing about software. She is writing about systems as stocks, flows, and
+                feedback loops — and once you internalise that framing, you cannot look at a codebase the
+                same way. A CI pipeline is a feedback loop. A growing bug backlog is a reinforcing loop.
+                An architectural decision that makes future change harder is a delayed-feedback trap.
+            </p>
+            <p class="book-friction">
+                The hardest chapter was on leverage points. Meadows argues that interventions almost
+                always happen at the wrong place: optimising flows rather than changing the structure
+                that governs them. Applied to AI-assisted development: adding more agents, faster CI,
+                or better prompts are flow optimisations. They do not change the underlying feedback
+                structure. If the architecture has no verification gate between AI generation and
+                production deployment, faster generation means faster compounding of unreviewed risk —
+                not faster delivery of safe software.
+            </p>
+            <div class="book-takeaway">
+                <span class="book-takeaway-label">Applied as</span>
+                <p class="book-takeaway-text">The .github/instructions/ files are a Meadows stock — a constraint that shapes agent behaviour before generation begins. The Jidoka verification gates are feedback loops closed at source. The intervention is structural, not flow-level. That distinction is the whole point.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- THROUGHLINE -->
+<section class="throughline">
+    <div class="throughline-inner">
+        <h2 class="throughline-heading">The same idea, six different languages</h2>
+        <div class="throughline-grid">
+            <div class="throughline-card">
+                <p class="throughline-card-book">The Staff Engineer's Path</p>
+                <p class="throughline-card-concept">Calibrated delegation</p>
+                <p class="throughline-card-body">Know which decisions need your judgment and which can be safely delegated. Then delegate deliberately, not by default.</p>
+            </div>
+            <div class="throughline-card">
+                <p class="throughline-card-book">Fundamentals of Software Architecture</p>
+                <p class="throughline-card-concept">Named trade-offs</p>
+                <p class="throughline-card-body">Every architectural choice is a trade-off. Unnamed trade-offs are not decisions — they are accidents waiting to surface at the worst time.</p>
+            </div>
+            <div class="throughline-card">
+                <p class="throughline-card-book">Designing Data-Intensive Applications</p>
+                <p class="throughline-card-concept">Deliberate consistency</p>
+                <p class="throughline-card-body">ACID and BASE do not mix safely by accident. In security-sensitive systems, an unowned consistency model is a CIA triad risk, not a performance footnote.</p>
+            </div>
+            <div class="throughline-card">
+                <p class="throughline-card-book">Software Architecture: The Hard Parts</p>
+                <p class="throughline-card-concept">Owned boundaries</p>
+                <p class="throughline-card-body">Component contracts must be explicit and stable. Coupling that is not named early will be discovered late, embedded inside something larger and harder to change.</p>
+            </div>
+            <div class="throughline-card">
+                <p class="throughline-card-book">The C4 Model</p>
+                <p class="throughline-card-concept">Altitude clarity</p>
+                <p class="throughline-card-body">Be explicit about which question you are answering at which level. Agents operate at code level but carry container assumptions. That gap needs a human.</p>
+            </div>
+            <div class="throughline-card">
+                <p class="throughline-card-book">Thinking in Systems</p>
+                <p class="throughline-card-concept">Structural intervention</p>
+                <p class="throughline-card-body">Faster generation without structural verification gates is not faster delivery. It is faster accumulation of unreviewed risk. The leverage point is the feedback architecture, not the flow speed.</p>
+            </div>
+        </div>
+
+        
+    <!-- SUMMARY TABLE -->
+    <div class="summary-table-wrap">
+      <p class="summary-table-label">Where each book actually landed</p>
+      <div class="summary-table-scroll">
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th>Book</th>
+              <th>What It Actually Taught</th>
+              <th>Where It Shows Up</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="summary-book-title">The Staff Engineer's Path</span></td>
+              <td>Judgment, not output, is the primary deliverable at senior level. Delegation must be calibrated, not defaulted.</td>
+              <td>Tiered AI autonomy model — tighter human control at higher C4 levels, more agent latitude at routine code level.</td>
+            </tr>
+            <tr>
+              <td><span class="summary-book-title">Fundamentals of Software Architecture</span></td>
+              <td>Every architectural choice is a trade-off. Unnamed trade-offs are not neutrality — they are accidents.</td>
+              <td>Every Context and Container decision in the CA has an explicit ARCHITECTURE.md entry with owned rationale — not generated, signed off by a human.</td>
+            </tr>
+            <tr>
+              <td><span class="summary-book-title">Designing Data-Intensive Applications</span></td>
+              <td>ACID and BASE do not mix safely by accident. In security-sensitive systems, an unowned consistency model is a CIA triad risk, not a performance footnote.</td>
+              <td>AuditLog: append-only, separately signed, tamper-evident. Envelope encryption as a deliberate data boundary. CAP theorem treated as a constraint, not an afterthought.</td>
+            </tr>
+            <tr>
+              <td><span class="summary-book-title">Software Architecture: The Hard Parts</span></td>
+              <td>Component contracts must be explicit before anything is built. Coupling that is not named early is discovered late, inside something larger.</td>
+              <td>KmsProvider interface designed by a human at component level before any AI touched the adapters. The .github/instructions/ file encoded the contract.</td>
+            </tr>
+            <tr>
+              <td><span class="summary-book-title">The C4 Model</span></td>
+              <td>Four levels of abstraction, each answering a different question at a different altitude. Mixing levels produces confusion that compounds.</td>
+              <td>Directly the backbone of the AI autonomy framework — Context: human only. Code: fully agentic. The altitude distinction is precise enough to act on and encode.</td>
+            </tr>
+            <tr>
+              <td><span class="summary-book-title">Thinking in Systems</span></td>
+              <td>Leverage lives in system structure, not flow optimisation. Faster generation without structural verification gates is faster accumulation of unreviewed risk.</td>
+              <td>Jidoka verification gates as feedback loops closed at source. .github/instructions/ as a stock — shaping agent behaviour before generation begins, not inspecting after.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="not-done-closer">
+            So, is this a definitive guide to using AI tools?
+            Will incorporating all the above lead to clean architectural decisions?
+
+            I do not have clean answers. I am not supposed to yet.<br><br>
+            This is a deliberate shot at the moon.<br>
+            Not because someone put it on a roadmap.<br>
+            Because it is there.
+        </p>
+    </div>
+</section>
+
+<footer>
+    <p>Built during a deliberate career break — April 2026 — <a href="jidoka-c4-ai-framework.html" style="color: var(--color-primary); text-decoration: none;">Read the framework</a></p>
+</footer>
+
+<script>
+    (function(){
+        var t = document.querySelector('[data-theme-toggle]');
+        var r = document.documentElement;
+        var d = r.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        r.setAttribute('data-theme', d);
+        function updateIcon() {
+            if (!t) return;
+            t.innerHTML = d === 'dark'
+                ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+                : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+            t.setAttribute('aria-label', 'Switch to ' + (d === 'dark' ? 'light' : 'dark') + ' mode');
+        }
+        updateIcon();
+        if (t) {
+            t.addEventListener('click', function() {
+                d = d === 'dark' ? 'light' : 'dark';
+                r.setAttribute('data-theme', d);
+                updateIcon();
+            });
+        }
+    })();
+</script>
+</body>
+</html>
